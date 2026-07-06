@@ -14,12 +14,22 @@ export interface Book {
   id: number;
   title: string;
   authorId: number;
+  publisherId: number;
   publishedYear: number;
   genre: string;
   description: string;
   coverUrl: string;
   pages: number;
   isbn: string;
+}
+
+export interface Publisher {
+  id: number;
+  name: string;
+  country: string;
+  foundedYear: number;
+  description: string;
+  website: string;
 }
 
 export const authors: Author[] = [
@@ -75,6 +85,7 @@ export const books: Book[] = [
     id: 1,
     title: "Pride and Prejudice",
     authorId: 1,
+    publisherId: 1,
     publishedYear: 1813,
     genre: "Romance",
     description:
@@ -88,6 +99,7 @@ export const books: Book[] = [
     id: 2,
     title: "Emma",
     authorId: 1,
+    publisherId: 1,
     publishedYear: 1815,
     genre: "Romance",
     description:
@@ -101,6 +113,7 @@ export const books: Book[] = [
     id: 3,
     title: "1984",
     authorId: 2,
+    publisherId: 1,
     publishedYear: 1949,
     genre: "Dystopian Fiction",
     description:
@@ -114,6 +127,7 @@ export const books: Book[] = [
     id: 4,
     title: "Animal Farm",
     authorId: 2,
+    publisherId: 1,
     publishedYear: 1945,
     genre: "Political Satire",
     description:
@@ -127,6 +141,7 @@ export const books: Book[] = [
     id: 5,
     title: "Murder on the Orient Express",
     authorId: 3,
+    publisherId: 2,
     publishedYear: 1934,
     genre: "Mystery",
     description:
@@ -140,6 +155,7 @@ export const books: Book[] = [
     id: 6,
     title: "And Then There Were None",
     authorId: 3,
+    publisherId: 2,
     publishedYear: 1939,
     genre: "Mystery",
     description:
@@ -153,6 +169,7 @@ export const books: Book[] = [
     id: 7,
     title: "The Old Man and the Sea",
     authorId: 4,
+    publisherId: 3,
     publishedYear: 1952,
     genre: "Literary Fiction",
     description:
@@ -166,6 +183,7 @@ export const books: Book[] = [
     id: 8,
     title: "A Farewell to Arms",
     authorId: 4,
+    publisherId: 3,
     publishedYear: 1929,
     genre: "War Novel",
     description:
@@ -179,6 +197,7 @@ export const books: Book[] = [
     id: 9,
     title: "Mrs Dalloway",
     authorId: 5,
+    publisherId: 4,
     publishedYear: 1925,
     genre: "Modernist Literature",
     description:
@@ -192,6 +211,7 @@ export const books: Book[] = [
     id: 10,
     title: "To the Lighthouse",
     authorId: 5,
+    publisherId: 4,
     publishedYear: 1927,
     genre: "Modernist Literature",
     description:
@@ -222,4 +242,51 @@ export function getAllAuthors(): Author[] {
 
 export function getAllBooks(): Book[] {
   return books;
+}
+
+export const publishers: Publisher[] = [
+  {
+    id: 1,
+    name: "Penguin Classics",
+    country: "United Kingdom",
+    foundedYear: 1946,
+    description: "Penguin Classics is a series of classic literature published by Penguin Books, one of the world's leading publishing houses. Known for affordable, high-quality editions of great works of world literature.",
+    website: "https://www.penguin.co.uk/penguin-classics",
+  },
+  {
+    id: 2,
+    name: "HarperCollins",
+    country: "United States",
+    foundedYear: 1989,
+    description: "HarperCollins Publishers is one of the world's largest publishing companies and is one of the Big Five English-language publishing companies. Its headquarters are located in New York City.",
+    website: "https://www.harpercollins.com",
+  },
+  {
+    id: 3,
+    name: "Scribner",
+    country: "United States",
+    foundedYear: 1846,
+    description: "Scribner is an American publisher based in New York City. It is a division of Simon & Schuster. Known for publishing some of America's greatest literary works.",
+    website: "https://www.simonandschuster.com/scribner",
+  },
+  {
+    id: 4,
+    name: "Harcourt",
+    country: "United States",
+    foundedYear: 1919,
+    description: "Harcourt is an American publisher with a long history of publishing distinguished works of fiction, nonfiction, and poetry, particularly known for its support of modernist literature.",
+    website: "https://www.hmhco.com",
+  },
+];
+
+export function getAllPublishers(): Publisher[] {
+  return publishers;
+}
+
+export function getPublisherById(id: number): Publisher | undefined {
+  return publishers.find((publisher) => publisher.id === id);
+}
+
+export function getBooksByPublisherId(publisherId: number): Book[] {
+  return books.filter((book) => book.publisherId === publisherId);
 }
