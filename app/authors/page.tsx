@@ -1,9 +1,25 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { getAllAuthors, getBooksByAuthorId } from '@/lib/data';
+import Pagination from '@/components/Pagination';
 
-export default function AuthorsPage() {
-  const authors = getAllAuthors();
+const PAGE_SIZE = 6;
+
+export default async function AuthorsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
+  const { page: pageParam } = await searchParams;
+  const page = Math.max(1, parseInt(pageParam ?? '1', 10));
+
+  const allAuthors = getAllAuthors();
+  const totalPages = Math.ceil(allAuthors.length / PAGE_SIZE);
+  const clampedPage = Math.max(1, Math.min(page, totalPages || 1));
+  const authors = allAuthors.slice((clampedPage - 1) * PAGE_SIZE, clampedPage * PAGE_SIZE);
+
+  const prevHref = clampedPage > 1 ? `/authors?page=${clampedPage - 1}` : null;
+  const nextHref = clampedPage < totalPages ? `/authors?page=${clampedPage + 1}` : null;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -58,6 +74,13 @@ export default function AuthorsPage() {
           );
         })}
       </div>
+
+      <Pagination
+        currentPage={clampedPage}
+        totalPages={totalPages}
+        prevHref={prevHref}
+        nextHref={nextHref}
+      />
     </div>
   );
 }

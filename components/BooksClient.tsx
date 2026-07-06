@@ -5,7 +5,10 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import SearchBar from './SearchBar';
+import Pagination from './Pagination';
 import { Book, Author } from '@/lib/data';
+
+const PAGE_SIZE = 6;
 
 interface BooksClientProps {
   initialBooks: Book[];
@@ -18,10 +21,13 @@ export default function BooksClient({ initialBooks, authors }: BooksClientProps)
   const router = useRouter();
   const selectedGenre = searchParams.get('genre') ?? 'all';
 
-  // Update the URL when a genre is selected, preserving any other existing params
+  const page = Math.max(1, parseInt(searchParams.get('page') ?? '1', 10));
+
+  // Update the URL when a genre is selected; also reset to page 1
   const handleGenreChange = (genre: string) => {
     const params = new URLSearchParams(searchParams.toString());
     params.set('genre', genre);
+    params.delete('page');
     router.push(`/books?${params.toString()}`);
   };
 
@@ -40,6 +46,19 @@ export default function BooksClient({ initialBooks, authors }: BooksClientProps)
       return matchesSearch && matchesGenre;
     });
   }, [initialBooks, searchQuery, selectedGenre, authors]);
+
+  // Clamp page in case filters reduced the total — then slice
+  const totalPages = Math.ceil(filteredBooks.length / PAGE_SIZE);
+  const clampedPage = Math.max(1, Math.min(page, totalPages || 1));
+  const paginatedBooks = filteredBooks.slice((clampedPage - 1) * PAGE_SIZE, clampedPage * PAGE_SIZE);
+
+  const buildPageHref = (p: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('page', String(p));
+    return `/books?${params.toString()}`;
+  };
+  const prevHref = clampedPage > 1 ? buildPageHref(clampedPage - 1) : null;
+  const nextHref = clampedPage < totalPages ? buildPageHref(clampedPage + 1) : null;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -73,7 +92,7 @@ export default function BooksClient({ initialBooks, authors }: BooksClientProps)
 
       {/* Results count */}
       <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
-        Showing {filteredBooks.length} {filteredBooks.length === 1 ? 'book' : 'books'}
+        Showing {filteredBooks.length === 0 ? 0 : (clampedPage - 1) * PAGE_SIZE + 1}–{Math.min(clampedPage * PAGE_SIZE, filteredBooks.length)} of {filteredBooks.length} {filteredBooks.length === 1 ? 'book' : 'books'}
       </p>
       
       {filteredBooks.length === 0 ? (
@@ -84,7 +103,7 @@ export default function BooksClient({ initialBooks, authors }: BooksClientProps)
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredBooks.map((book) => {
+          {paginatedBooks.map((book) => {
             const author = authors.find(a => a.id === book.authorId);
             
             return (
@@ -120,6 +139,13 @@ export default function BooksClient({ initialBooks, authors }: BooksClientProps)
           })}
         </div>
       )}
+
+      <Pagination
+        currentPage={clampedPage}
+        totalPages={totalPages}
+        prevHref={prevHref}
+        nextHref={nextHref}
+      />
     </div>
   );
 }
