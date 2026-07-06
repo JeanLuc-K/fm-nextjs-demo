@@ -23,12 +23,13 @@ export default function BooksClient({ initialBooks, authors }: BooksClientProps)
 
   const page = Math.max(1, parseInt(searchParams.get('page') ?? '1', 10));
 
-  // Update the URL when a genre is selected; also reset to page 1
+  // Update the URL when a genre is selected; also reset to page 1.
+  // replace instead of push — genre filter shouldn't stack up in history.
   const handleGenreChange = (genre: string) => {
     const params = new URLSearchParams(searchParams.toString());
     params.set('genre', genre);
     params.delete('page');
-    router.push(`/books?${params.toString()}`);
+    router.replace(`/books?${params.toString()}`);
   };
 
   // Get unique genres

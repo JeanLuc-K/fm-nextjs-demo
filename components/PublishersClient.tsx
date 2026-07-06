@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Publisher, Book } from '@/lib/data';
@@ -22,6 +22,16 @@ export default function PublishersClient({ publishers, books }: PublishersClient
   const sortField = (searchParams.get('sort') ?? 'name') as SortField;
   const sortDir = (searchParams.get('dir') ?? 'asc') as SortDir;
 
+  // Local state for the search input so it stays responsive while the URL
+  // update is debounced, preventing a history entry per keystroke.
+  const [inputValue, setInputValue] = useState(search);
+  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Keep input in sync when the user navigates back/forward.
+  useEffect(() => {
+    setInputValue(search);
+  }, [search]);
+
   const updateParam = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams.toString());
     if (value === '' || value === 'all') {
@@ -29,7 +39,14 @@ export default function PublishersClient({ publishers, books }: PublishersClient
     } else {
       params.set(key, value);
     }
-    router.push(`/publishers?${params.toString()}`);
+    // replace instead of push — filter changes shouldn't stack up in history
+    router.replace(`/publishers?${params.toString()}`);
+  };
+
+  const handleSearchChange = (value: string) => {
+    setInputValue(value);
+    if (debounceTimer.current) clearTimeout(debounceTimer.current);
+    debounceTimer.current = setTimeout(() => updateParam('search', value), 300);
   };
 
   const handleSort = (field: SortField) => {
@@ -40,7 +57,7 @@ export default function PublishersClient({ publishers, books }: PublishersClient
       params.set('sort', field);
       params.delete('dir');
     }
-    router.push(`/publishers?${params.toString()}`);
+    router.replace(`/publishers?${params.toString()}`);
   };
 
   const countries = useMemo(() => {
@@ -91,8 +108,8 @@ export default function PublishersClient({ publishers, books }: PublishersClient
         <input
           type="text"
           placeholder="Search publishers..."
-          value={search}
-          onChange={(e) => updateParam('search', e.target.value)}
+          value={inputValue}
+          onChange={(e) => handleSearchChange(e.target.value)}
           className="flex-1 px-4 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-50 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-500"
         />
         <select
